@@ -4,7 +4,7 @@ export function cn(...inputs: ClassValue[]) {
   return inputs.filter(Boolean).join(" ");
 }
 
-const APP_TIME_ZONE = "America/Edmonton";
+export const APP_TIME_ZONE = "America/Edmonton";
 
 function ymdFromDate(date: Date): { year: number; month: number; day: number } {
   const parts = new Intl.DateTimeFormat("en-CA", {

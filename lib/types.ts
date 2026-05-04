@@ -60,6 +60,19 @@ export interface SmsPendingReply {
   created_at: string;
 }
 
+export interface VoiceCheckinCall {
+  id: string;
+  user_id: string;
+  call_date: string;
+  phone_number: string;
+  vapi_call_id: string | null;
+  status: "creating" | "created" | "failed";
+  error: string | null;
+  response_json: Json | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PillarWithIndicators extends Pillar {
   behavioral_indicators: BehavioralIndicator[];
 }
@@ -108,6 +121,12 @@ export type Database = {
         Row: SmsPendingReply;
         Insert: Omit<SmsPendingReply, "id" | "created_at">;
         Update: Partial<Omit<SmsPendingReply, "id" | "created_at">>;
+        Relationships: [];
+      };
+      voice_checkin_calls: {
+        Row: VoiceCheckinCall;
+        Insert: Omit<VoiceCheckinCall, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<VoiceCheckinCall, "id" | "created_at" | "updated_at">>;
         Relationships: [];
       };
     };

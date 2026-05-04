@@ -20,15 +20,40 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
+      - key: APP_BASE_URL
+        sync: false
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
         sync: false
       - key: TWILIO_PHONE_NUMBER
         sync: false
+      - key: VAPI_API_KEY
+        sync: false
+      - key: VAPI_DAILY_CHECKIN_ASSISTANT_ID
+        sync: false
+      - key: VAPI_PHONE_NUMBER_ID
+        sync: false
+      - key: DAILY_CHECKIN_PHONE_NUMBER
+        sync: false
+      - key: VOICE_AGENT_SECRET
+        sync: false
       - key: CRON_SECRET
         sync: false
       - key: APP_USER_EMAIL
         sync: false
       - key: APP_USER_ID
+        sync: false
+  - type: cron
+    name: behavior-tracker-daily-voice-call
+    runtime: node
+    schedule: "50 1,2 * * *"
+    buildCommand: npm ci
+    startCommand: node scripts/trigger-daily-voice-call.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: APP_BASE_URL
+        sync: false
+      - key: CRON_SECRET
         sync: false
