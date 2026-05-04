@@ -45,7 +45,8 @@ async function parseBody(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.VOICE_CRON_SECRET ?? process.env.CRON_SECRET;
+  if (!cronSecret || req.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -38,6 +38,8 @@ services:
         sync: false
       - key: VOICE_AGENT_SECRET
         sync: false
+      - key: VOICE_CRON_SECRET
+        sync: false
       - key: CRON_SECRET
         sync: false
       - key: APP_USER_EMAIL
@@ -54,6 +56,8 @@ services:
       - key: NODE_VERSION
         value: 20
       - key: APP_BASE_URL
+        sync: false
+      - key: VOICE_CRON_SECRET
         sync: false
       - key: CRON_SECRET
         sync: false

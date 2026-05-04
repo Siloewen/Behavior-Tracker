@@ -1,8 +1,8 @@
 const appBaseUrl = process.env.APP_BASE_URL;
-const cronSecret = process.env.CRON_SECRET;
+const cronSecret = process.env.VOICE_CRON_SECRET ?? process.env.CRON_SECRET;
 
 if (!appBaseUrl || !cronSecret) {
-  throw new Error("APP_BASE_URL and CRON_SECRET are required");
+  throw new Error("APP_BASE_URL and VOICE_CRON_SECRET are required");
 }
 
 const response = await fetch(`${appBaseUrl.replace(/\/$/, "")}/api/voice/send-daily-call`, {
