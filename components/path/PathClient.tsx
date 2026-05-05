@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { PillarWithIndicators, DailyLog } from "@/lib/types";
-import { effectiveLogDate, getWeekStart, identityPct } from "@/lib/utils";
+import { getWeekStart, identityPct } from "@/lib/utils";
 
 const GOOD_PATH = 4.5;
 const BAD_PATH = 1.5;
@@ -56,7 +56,7 @@ export default function PathClient({ pillars, logs }: Props) {
     for (const log of logs) {
       const pid = log.behavioral_indicators?.pillar_id;
       if (!pid) continue;
-      const w = getWeekStart(effectiveLogDate(log.log_date, log.created_at));
+      const w = getWeekStart(log.log_date);
       if (!map[pid]) map[pid] = {};
       if (!map[pid][w]) map[pid][w] = [];
       map[pid][w].push(log.score);

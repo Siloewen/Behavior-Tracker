@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { PillarWithIndicators, DailyLog } from "@/lib/types";
-import { effectiveLogDate, scoreColor, scoreLabel, getWeekStart } from "@/lib/utils";
+import { scoreColor, scoreLabel, getWeekStart } from "@/lib/utils";
 
 interface LogWithPillar extends DailyLog {
   behavioral_indicators: { pillar_id: string };
@@ -33,7 +33,7 @@ export default function MirrorClient({ pillars, logs }: Props) {
     for (const log of logs) {
       const pillarId = log.behavioral_indicators?.pillar_id;
       if (!pillarId) continue;
-      const week = getWeekStart(effectiveLogDate(log.log_date, log.created_at));
+      const week = getWeekStart(log.log_date);
       if (!map[pillarId]) map[pillarId] = {};
       if (!map[pillarId][week]) map[pillarId][week] = [];
       map[pillarId][week].push(log.score);

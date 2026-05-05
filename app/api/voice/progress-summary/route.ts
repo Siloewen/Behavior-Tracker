@@ -1,7 +1,7 @@
 import { getAppUserId, isOfflineAppUserId } from "@/lib/app-user";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { DailyLog, PillarWithIndicators } from "@/lib/types";
-import { APP_TIME_ZONE, effectiveLogDate, getWeekStart, identityPct, today } from "@/lib/utils";
+import { APP_TIME_ZONE, getWeekStart, identityPct, today } from "@/lib/utils";
 import {
   getVoiceToolArguments,
   isAuthorizedVoiceRequest,
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     const pillarId = log.behavioral_indicators?.pillar_id;
     if (!pillarId) continue;
 
-    const week = getWeekStart(effectiveLogDate(log.log_date, log.created_at));
+    const week = getWeekStart(log.log_date);
     if (!weekSet.has(week)) continue;
 
     scoreMap[pillarId] ??= {};
