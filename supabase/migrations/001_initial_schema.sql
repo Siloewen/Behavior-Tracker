@@ -22,13 +22,13 @@ create table behavioral_indicators (
   created_at timestamptz not null default now()
 );
 
--- Daily logs: 1-5 score per indicator per day
+-- Daily logs: 1-5 score per indicator per day, with half-point increments
 create table daily_logs (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid not null references auth.users(id) on delete cascade,
   log_date date not null default current_date,
   indicator_id uuid not null references behavioral_indicators(id) on delete cascade,
-  score int not null check (score between 1 and 5),
+  score numeric(2,1) not null check (score >= 1 and score <= 5 and score * 2 = floor(score * 2)),
   note text,
   created_at timestamptz not null default now(),
   unique(user_id, log_date, indicator_id)

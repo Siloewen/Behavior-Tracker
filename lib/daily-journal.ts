@@ -75,7 +75,7 @@ function validateScores(scores: JournalScore[], indicators: JournalIndicator[]) 
       throw new DailyJournalError("AI response included an unknown indicator");
     }
 
-    if (!Number.isInteger(score.score) || score.score < 1 || score.score > 5) {
+    if (!Number.isInteger(score.score * 2) || score.score < 1 || score.score > 5) {
       throw new DailyJournalError("AI response included an invalid score");
     }
   }
@@ -107,7 +107,7 @@ export async function logDailyJournal(userId: string, text: string) {
 INDICATORS:
 ${indicatorList}
 
-SCORING (1-5):
+SCORING (1-5, half-point increments allowed):
 5 = Clearly did it / clearly stayed clean
 4 = Mostly present
 3 = Mixed or partial
@@ -115,6 +115,7 @@ SCORING (1-5):
 1 = Did not happen / bad behavior occurred
 
 RULES:
+- Scores must be one of: 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5.
 - Avoidance indicators (no cannabis, no alcohol, no gambling): default to 5 unless journal mentions using them. "Had a beer" = 2. "Couple drinks" = 1-2.
 - Positive practice indicators (exercise, AI work, connection): default to 1 if not mentioned. Score higher only if mentioned.
 - Be direct. Don't inflate.
@@ -123,7 +124,7 @@ JOURNAL:
 ${journalText}
 
 Return ONLY a JSON object - no markdown, no explanation:
-{"scores":[{"indicator_id":"<id>","score":<1-5>,"reasoning":"<one short sentence>"}]}`,
+{"scores":[{"indicator_id":"<id>","score":<1-5 by 0.5>,"reasoning":"<one short sentence>"}]}`,
       },
     ],
   });

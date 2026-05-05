@@ -70,7 +70,7 @@ export async function POST(req: Request) {
 
 Context he holds: we are on the verge of AGI and a potential explosion in human healthspan. The compounding value of the person he becomes NOW — his health, his skills, his financial discipline, his relationships — is dramatically higher than in any prior generation. He may have decades more productive life ahead than he expects. The character he builds in the next 2-5 years may shape the next 50. This is not a reason to be cheerful — it's a reason to be precise about drift.
 
-Here is his behavioral data for the week of ${weekStart}. Each metric is scored 1-5 (1=absent, 5=strong):
+Here is his behavioral data for the week of ${weekStart}. Each metric is scored 1-5 in half-point increments (1=absent, 5=strong):
 
 ${dataLines}
 

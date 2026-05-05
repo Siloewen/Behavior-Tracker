@@ -54,7 +54,7 @@ export default function SettingsClient({ initialSettings }: Props) {
             placeholder="+1 587 000 0000"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-accent/50"
           />
-          <p className="text-[10px] text-white/25 mt-1">Include country code. Alerts sent via SMS — you can reply 1–5 to log a score.</p>
+          <p className="text-[10px] text-white/25 mt-1">Include country code. Alerts sent via SMS — you can reply 1-5, including halves like 3.5, to log a score.</p>
         </div>
 
         <div>

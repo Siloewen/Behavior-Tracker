@@ -1,6 +1,11 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { scoreLabel } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import type { SmsPendingReply } from "@/lib/types";
+
+function isValidScore(score: number) {
+  return score >= 1 && score <= 5 && Number.isInteger(score * 2);
+}
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -8,7 +13,7 @@ export async function POST(req: Request) {
 
   const from = params.get("From");
   const messageBody = params.get("Body")?.trim() ?? "";
-  const score = parseInt(messageBody, 10);
+  const score = Number(messageBody);
 
   function twiml(msg: string) {
     return new NextResponse(
@@ -19,8 +24,8 @@ export async function POST(req: Request) {
 
   if (!from) return twiml("Could not identify sender.");
 
-  if (isNaN(score) || score < 1 || score > 5) {
-    return twiml("Reply with a number 1–5 to log your score. (1=absent, 5=strong)");
+  if (!isValidScore(score)) {
+    return twiml("Reply with a number 1-5, including halves like 3.5, to log your score.");
   }
 
   const supabase = createServiceClient();
@@ -54,6 +59,5 @@ export async function POST(req: Request) {
 
   await supabase.from("sms_pending_replies").delete().eq("id", pending.id);
 
-  const labels: Record<number, string> = { 1: "Absent", 2: "Weak", 3: "Mixed", 4: "Good", 5: "Strong" };
-  return twiml(`Logged: ${score}/5 — ${labels[score]}. Check the Mirror for your trends.`);
+  return twiml(`Logged: ${score}/5 - ${scoreLabel(score)}. Check the Mirror for your trends.`);
 }

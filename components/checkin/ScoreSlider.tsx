@@ -1,8 +1,12 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, scoreLabel } from "@/lib/utils";
 
-const LABELS = ["", "1 — Absent", "2 — Weak", "3 — Mixed", "4 — Good", "5 — Strong"];
+const SCORE_OPTIONS = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+
+function formatScore(score: number) {
+  return Number.isInteger(score) ? String(score) : score.toFixed(1);
+}
 
 interface Props {
   value: number;
@@ -13,13 +17,13 @@ interface Props {
 export default function ScoreSlider({ value, color, onChange }: Props) {
   return (
     <div>
-      <div className="flex gap-1.5">
-        {[1, 2, 3, 4, 5].map(n => (
+      <div className="grid grid-cols-9 gap-1">
+        {SCORE_OPTIONS.map(n => (
           <button
             key={n}
             onClick={() => onChange(n)}
             className={cn(
-              "flex-1 h-9 rounded-lg text-xs font-medium transition-all",
+              "h-8 rounded-lg text-[10px] font-medium transition-all",
               value === n
                 ? "text-white scale-105 shadow-lg"
                 : value > 0 && n <= value
@@ -32,12 +36,14 @@ export default function ScoreSlider({ value, color, onChange }: Props) {
                 : undefined
             }
           >
-            {n}
+            {formatScore(n)}
           </button>
         ))}
       </div>
       {value > 0 && (
-        <p className="text-[10px] text-white/30 mt-1 text-right">{LABELS[value]}</p>
+        <p className="text-[10px] text-white/30 mt-1 text-right">
+          {formatScore(value)} — {scoreLabel(value)}
+        </p>
       )}
     </div>
   );

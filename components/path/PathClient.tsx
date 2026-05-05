@@ -50,6 +50,12 @@ function buildDays(n: number): string[] {
   return days;
 }
 
+function addDays(dateKeyValue: string, days: number): string {
+  const [year, month, day] = dateKeyValue.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return date.toISOString().split("T")[0];
+}
+
 function shortLabel(w: string): string {
   return new Date(w + "T00:00:00").toLocaleDateString("en-CA", {
     month: "short",
@@ -64,7 +70,7 @@ function average(scores: number[]): number | null {
 export default function PathClient({ pillars, logs }: Props) {
   const weeks = useMemo(() => buildWeeks(NUM_WEEKS), []);
   const days = useMemo(() => buildDays(NUM_WEEKS * 7), []);
-  const currentWeek = getWeekStart();
+  const currentDay = dateKey();
   const activePillarIds = useMemo(() => new Set(pillars.map((p) => p.id)), [pillars]);
 
   const dailyScoreMap = useMemo(() => {
@@ -95,18 +101,6 @@ export default function PathClient({ pillars, logs }: Props) {
     return map;
   }, [logs]);
 
-  // Overall weekly average: average the daily scores inside each week.
-  const weeklyAvg = useMemo(() => {
-    return Object.fromEntries(
-      weeks.map((w) => {
-        const dailyScores = Object.entries(dailyScoreMap)
-          .filter(([day]) => getWeekStart(day) === w)
-          .map(([, score]) => score);
-        return [w, average(dailyScores)];
-      })
-    ) as Record<string, number | null>;
-  }, [dailyScoreMap, weeks]);
-
   // Daily averages give the trajectory a visible path as soon as multiple check-in days exist.
   const dailyAvg = useMemo(() => {
     return Object.fromEntries(
@@ -124,8 +118,21 @@ export default function PathClient({ pillars, logs }: Props) {
   );
   const trajectoryPointCount = chartData.filter((point) => point.actual !== null).length;
 
-  const thisWeekAvg = weeklyAvg[currentWeek];
-  const prevWeekAvg = weeklyAvg[weeks[weeks.length - 2]];
+  const thisWeekAvg = useMemo(() => {
+    const start = addDays(currentDay, -6);
+    const scores = Object.entries(dailyScoreMap)
+      .filter(([day]) => day >= start && day <= currentDay)
+      .map(([, score]) => score);
+    return average(scores);
+  }, [currentDay, dailyScoreMap]);
+  const prevWeekAvg = useMemo(() => {
+    const start = addDays(currentDay, -13);
+    const end = addDays(currentDay, -7);
+    const scores = Object.entries(dailyScoreMap)
+      .filter(([day]) => day >= start && day <= end)
+      .map(([, score]) => score);
+    return average(scores);
+  }, [currentDay, dailyScoreMap]);
   const thisScore = thisWeekAvg !== null ? identityPct(thisWeekAvg) : null;
   const prevScore = prevWeekAvg !== null ? identityPct(prevWeekAvg) : null;
   const trend = thisScore !== null && prevScore !== null ? thisScore - prevScore : null;

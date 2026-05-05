@@ -89,9 +89,9 @@ export async function POST(req: Request) {
 
     let message = "";
     if (daysSinceLog >= 10) {
-      message = `Mirror: ${daysSinceLog} days without a check-in. The person you're becoming is built in the gaps.\n\n"${targetPillar.label}":\n${indicatorList}\n\nReply 1–5 to log today.`;
+      message = `Mirror: ${daysSinceLog} days without a check-in. The person you're becoming is built in the gaps.\n\n"${targetPillar.label}":\n${indicatorList}\n\nReply 1-5, halves allowed like 3.5, to log today.`;
     } else {
-      message = `Mirror: "${targetPillar.label}" has been weak for 2+ weeks. You're building in the AGI era — compound interest applies to character too.\n\n${indicatorList}\n\nReply 1–5 to log today's score.`;
+      message = `Mirror: "${targetPillar.label}" has been weak for 2+ weeks. You're building in the AGI era — compound interest applies to character too.\n\n${indicatorList}\n\nReply 1-5, halves allowed like 3.5, to log today's score.`;
     }
 
     await supabase.from("sms_pending_replies").insert({

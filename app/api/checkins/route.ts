@@ -3,10 +3,14 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { today } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
+function isValidScore(score: unknown): score is number {
+  return typeof score === "number" && score >= 1 && score <= 5 && Number.isInteger(score * 2);
+}
+
 export async function POST(req: Request) {
   const { indicatorId, score } = await req.json();
 
-  if (!indicatorId || typeof score !== "number" || score < 1 || score > 5) {
+  if (!indicatorId || !isValidScore(score)) {
     return NextResponse.json({ error: "Invalid check-in" }, { status: 400 });
   }
 
