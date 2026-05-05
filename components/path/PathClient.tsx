@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { PillarWithIndicators, DailyLog } from "@/lib/types";
-import { getWeekStart, identityPct } from "@/lib/utils";
+import { dateKey, getWeekStart, identityPct } from "@/lib/utils";
 
 const GOOD_PATH = 4.5;
 const BAD_PATH = 1.5;
@@ -39,6 +39,17 @@ function buildWeeks(n: number): string[] {
   return weeks;
 }
 
+function buildDays(n: number): string[] {
+  const days: string[] = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    days.push(dateKey(d));
+  }
+  return days;
+}
+
 function shortLabel(w: string): string {
   return new Date(w + "T00:00:00").toLocaleDateString("en-CA", {
     month: "short",
@@ -46,9 +57,29 @@ function shortLabel(w: string): string {
   });
 }
 
+function average(scores: number[]): number | null {
+  return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+}
+
 export default function PathClient({ pillars, logs }: Props) {
   const weeks = useMemo(() => buildWeeks(NUM_WEEKS), []);
+  const days = useMemo(() => buildDays(NUM_WEEKS * 7), []);
   const currentWeek = getWeekStart();
+  const activePillarIds = useMemo(() => new Set(pillars.map((p) => p.id)), [pillars]);
+
+  const dailyScoreMap = useMemo(() => {
+    const scoresByDay: Record<string, number[]> = {};
+    for (const log of logs) {
+      const pid = log.behavioral_indicators?.pillar_id;
+      if (!pid || !activePillarIds.has(pid)) continue;
+      if (!scoresByDay[log.log_date]) scoresByDay[log.log_date] = [];
+      scoresByDay[log.log_date].push(log.score);
+    }
+
+    return Object.fromEntries(
+      Object.entries(scoresByDay).map(([day, scores]) => [day, average(scores)])
+    ) as Record<string, number>;
+  }, [activePillarIds, logs]);
 
   // pillarId → weekStr → scores[]
   const scoreMap = useMemo(() => {
@@ -64,30 +95,43 @@ export default function PathClient({ pillars, logs }: Props) {
     return map;
   }, [logs]);
 
-  // Overall weekly average across all pillars
+  // Overall weekly average: average the daily scores inside each week.
   const weeklyAvg = useMemo(() => {
     return Object.fromEntries(
       weeks.map((w) => {
-        const all = pillars.flatMap((p) => scoreMap[p.id]?.[w] ?? []);
-        return [w, all.length > 0 ? all.reduce((a, b) => a + b, 0) / all.length : null];
+        const dailyScores = Object.entries(dailyScoreMap)
+          .filter(([day]) => getWeekStart(day) === w)
+          .map(([, score]) => score);
+        return [w, average(dailyScores)];
       })
-    );
-  }, [pillars, scoreMap, weeks]);
+    ) as Record<string, number | null>;
+  }, [dailyScoreMap, weeks]);
+
+  // Daily averages give the trajectory a visible path as soon as multiple check-in days exist.
+  const dailyAvg = useMemo(() => {
+    return Object.fromEntries(
+      days.map((day) => [day, dailyScoreMap[day] ?? null])
+    ) as Record<string, number | null>;
+  }, [dailyScoreMap, days]);
 
   const chartData = useMemo(
     () =>
-      weeks.map((w) => ({
-        label: shortLabel(w),
-        actual: weeklyAvg[w] !== null ? +weeklyAvg[w]!.toFixed(2) : null,
+      days.map((day) => ({
+        label: shortLabel(day),
+        actual: dailyAvg[day] !== null ? +dailyAvg[day]!.toFixed(2) : null,
       })),
-    [weeks, weeklyAvg]
+    [dailyAvg, days]
   );
+  const trajectoryPointCount = chartData.filter((point) => point.actual !== null).length;
 
   const thisWeekAvg = weeklyAvg[currentWeek];
   const prevWeekAvg = weeklyAvg[weeks[weeks.length - 2]];
   const thisScore = thisWeekAvg !== null ? identityPct(thisWeekAvg) : null;
   const prevScore = prevWeekAvg !== null ? identityPct(prevWeekAvg) : null;
   const trend = thisScore !== null && prevScore !== null ? thisScore - prevScore : null;
+  const allTimeDailyScores = Object.values(dailyScoreMap);
+  const allTimeAvg = average(allTimeDailyScores);
+  const allTimeScore = allTimeAvg !== null ? identityPct(allTimeAvg) : null;
 
   // Per-pillar: 4-week avg vs prior 4-week avg
   const recentWeeks = weeks.slice(-4);
@@ -136,16 +180,26 @@ export default function PathClient({ pillars, logs }: Props) {
                 <span className="text-4xl font-bold tabular-nums">{thisScore}%</span>
                 <p className="text-xs text-white/30 mt-1">toward your Good Path</p>
               </div>
-              {trend !== null && (
-                <div className="text-right pb-1">
-                  <span
-                    className={`text-sm font-semibold ${trend >= 0 ? "text-emerald-400" : "text-red-400"}`}
-                  >
-                    {trend >= 0 ? `↑ +${trend}` : `↓ ${trend}`}
-                  </span>
-                  <p className="text-[10px] text-white/25 mt-0.5">vs last week</p>
-                </div>
-              )}
+              <div className="text-right pb-1">
+                {allTimeScore !== null && (
+                  <div className="mb-2">
+                    <span className="text-sm font-semibold tabular-nums text-white/70">
+                      {allTimeScore}%
+                    </span>
+                    <p className="text-[10px] text-white/25 mt-0.5">all time</p>
+                  </div>
+                )}
+                {trend !== null && (
+                  <>
+                    <span
+                      className={`text-sm font-semibold ${trend >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                    >
+                      {trend >= 0 ? `↑ +${trend}` : `↓ ${trend}`}
+                    </span>
+                    <p className="text-[10px] text-white/25 mt-0.5">vs last week</p>
+                  </>
+                )}
+              </div>
             </div>
             <div
               className="relative h-2.5 rounded-full"
@@ -172,7 +226,7 @@ export default function PathClient({ pillars, logs }: Props) {
       {/* 16-week trajectory chart */}
       <div className="glass rounded-2xl p-4 mb-4">
         <p className="text-[10px] uppercase tracking-widest text-white/40 mb-4">
-          Trajectory — 16 weeks
+          Trajectory — daily scores, 16 weeks
         </p>
         <ResponsiveContainer width="100%" height={180}>
           <LineChart data={chartData} margin={{ top: 10, right: 28, left: -28, bottom: 0 }}>
@@ -186,7 +240,7 @@ export default function PathClient({ pillars, logs }: Props) {
               tick={{ fontSize: 9, fill: "rgba(255,255,255,0.2)" }}
               tickLine={false}
               axisLine={false}
-              interval={3}
+              interval={27}
             />
             <YAxis
               domain={[1, 5]}
@@ -242,10 +296,15 @@ export default function PathClient({ pillars, logs }: Props) {
               strokeWidth={2}
               dot={{ fill: "#7c6af7", r: 2.5, strokeWidth: 0 }}
               activeDot={{ r: 4, fill: "#7c6af7", stroke: "rgba(124,106,247,0.3)", strokeWidth: 4 }}
-              connectNulls={false}
+              connectNulls
             />
           </LineChart>
         </ResponsiveContainer>
+        {trajectoryPointCount < 2 && (
+          <p className="text-[10px] text-center text-white/25 mt-1">
+            One logged day so far. Your trajectory line appears after the next check-in day.
+          </p>
+        )}
         <div className="flex items-center justify-center gap-5 mt-3">
           <div className="flex items-center gap-1.5">
             <svg width="16" height="8" viewBox="0 0 16 8">

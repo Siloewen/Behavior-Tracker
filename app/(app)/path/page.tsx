@@ -2,10 +2,7 @@ import PathClient from "@/components/path/PathClient";
 import SupabaseOffline from "@/components/ui/SupabaseOffline";
 import { getAppUserId, isOfflineAppUserId } from "@/lib/app-user";
 import { createServiceClient } from "@/lib/supabase/service";
-import { dateKey } from "@/lib/utils";
 import { unstable_noStore as noStore } from "next/cache";
-
-const NUM_WEEKS = 16;
 
 export default async function PathPage() {
   noStore();
@@ -23,14 +20,10 @@ export default async function PathPage() {
     .is("archived_at", null)
     .order("priority_rank");
 
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - NUM_WEEKS * 7);
-
   const { data: logs } = await supabase
     .from("daily_logs")
     .select("*, behavioral_indicators(pillar_id)")
     .eq("user_id", userId)
-    .gte("log_date", dateKey(cutoff))
     .order("log_date");
 
   return <PathClient pillars={pillars ?? []} logs={logs ?? []} />;
