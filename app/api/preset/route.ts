@@ -27,11 +27,11 @@ const PRESET = [
   },
   {
     label: "Builder Mindset",
-    description: "Ship things that matter. Use AI to build at the frontier.",
+    description: "Ship things that matter. Do meaningful, focused work every day.",
     priority_rank: 3,
     color: "#60a5fa",
     indicators: [
-      { label: "Did deep AI work or building today", cadence: "daily" as const },
+      { label: "Did deep, focused work today", cadence: "daily" as const },
     ],
   },
   {
